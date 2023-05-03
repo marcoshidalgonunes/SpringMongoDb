@@ -15,15 +15,15 @@ public class Book {
     @Id
     public String id;
 
-    @JsonProperty("name")
+    @JsonProperty("Name")
     public String Name;
 
-    @JsonProperty("price")
+    @JsonProperty("Price")
     public BigDecimal Price;
 
-    @JsonProperty("category")
+    @JsonProperty("Category")
     public String Category;
 
-    @JsonProperty("author")
+    @JsonProperty("Author")
     public String Author;
 }
