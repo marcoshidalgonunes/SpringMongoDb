@@ -10,10 +10,13 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - mongo
+      - keycloak
     links:
       - mongo
+    networks:
+      - lan-network
     ports:
-      - 8080:8080
+      - 8081:8081
 
   mongo:
     container_name: bookstoredb
@@ -21,8 +24,32 @@ services:
     restart: always
     volumes:
       - mongodata:/data/db
+    networks:
+      - lan-network        
     ports:
       - 27017:27017
 
+  keycloak:
+      image: quay.io/keycloak/keycloak:latest
+      container_name: keycloak
+      environment:
+        KEYCLOACK_HOSTNAME: localhost
+      ports:
+        - 8080:8080
+      restart: always
+      command:
+        - start-dev
+      networks:
+        - lan-network        
+      volumes:
+        - keycloakdata:/opt/keycloak/data/h2
+
 volumes:
   mongodata:
+  keycloakdata:
+    external: true
+    name: keycloakdata
+
+networks:
+  lan-network:
+    driver: bridge
