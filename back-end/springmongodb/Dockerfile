@@ -4,6 +4,7 @@ COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline
 COPY ./src ./src
+COPY ./src/main/resources/application-docker.yml ./src/main/resources/application.yml 
 RUN ./mvnw clean install
  
 FROM eclipse-temurin:17-jre-jammy

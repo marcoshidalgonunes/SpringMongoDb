@@ -13,6 +13,7 @@ services:
       - keycloak
     links:
       - mongo
+      - keycloak
     networks:
       - lan-network
     ports:
@@ -32,8 +33,6 @@ services:
   keycloak:
       image: quay.io/keycloak/keycloak:latest
       container_name: keycloak
-      environment:
-        KEYCLOACK_HOSTNAME: localhost
       ports:
         - 8080:8080
       restart: always
