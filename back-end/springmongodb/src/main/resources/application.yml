@@ -1,19 +1,9 @@
 server:
   port: 8081
 spring:
-  data:
-    mongodb:
-      uri: 'mongodb://localhost:27017/BookstoreDb'
-      database: BookstoreDb
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: 'http://localhost:8080/realms/SpringBootRealm'
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+  profiles: 
+    active: local
 springdoc:
   swagger-ui:
     oauth:
       client-id: spring-app
-cors:
-  allowed-origins: '*' 
