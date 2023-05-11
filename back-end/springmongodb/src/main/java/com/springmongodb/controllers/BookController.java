@@ -3,7 +3,7 @@ package com.springmongodb.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,12 +36,22 @@ public class BookController {
 
     @RequestMapping(path = "/Books/{criteria}/{search}", method = RequestMethod.GET)
     public ResponseEntity<List<Book>> getByCriteria(@PathVariable String criteria, @PathVariable String search) {
-        return ResponseEntity.ok().body(bookService.getByCriteria(criteria, search));
+        List<Book> books = bookService.getByCriteria(criteria, search);
+        if (books == null || books.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); 
+        }
+
+        return ResponseEntity.ok().body(books);   
     }
 
     @GetMapping("/Books/{id}")
     public ResponseEntity<Book> getById(@PathVariable @NotBlank @Size(max = 24) String id) {
-        return ResponseEntity.ok().body(bookService.getById(id));
+        Book book = bookService.getById(id);
+        if (book == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
+        return ResponseEntity.ok().body(book);
     }
 
     @PostMapping("/Books")
@@ -51,11 +61,21 @@ public class BookController {
 
     @PutMapping("/Books")
     public ResponseEntity<Boolean> update(@RequestBody Book book) {
-        return ResponseEntity.ok().body(bookService.update(book));
+        Boolean ok = bookService.update(book);
+        if (!ok) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return ResponseEntity.ok().body(ok);
     }
 
     @DeleteMapping("/Books/{id}")
     public ResponseEntity<Boolean> delete(@PathVariable @NotBlank @Size(max = 24) String id) {
-        return ResponseEntity.ok().body(bookService.delete(id));
+        Boolean ok = bookService.delete(id);
+        if (!ok) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return ResponseEntity.ok().body(ok);
     }
 }
