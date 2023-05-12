@@ -48,6 +48,8 @@ services:
 
 volumes:
   mongodata:
+    external: true
+    name: mongodata
   keycloakdata:
     external: true
     name: keycloakdata
