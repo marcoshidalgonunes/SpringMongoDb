@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -18,6 +20,7 @@ public class Book {
     @JsonProperty("Name")
     public String Name;
 
+    @Field(targetType = FieldType.DOUBLE)
     @JsonProperty("Price")
     public BigDecimal Price;
 
