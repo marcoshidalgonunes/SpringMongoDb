@@ -215,13 +215,6 @@ public class BookServiceImplTest {
     @Test
     public void whenDeleteInvalidIsCalled_thenReturnShouldBeFalse() {
         String bookId = "645d1d9fb116312707362207";
-        Book book = new Book() {{
-            id = "645d1d9fb116312707362206";
-            Name = "Design Patterns";
-            Author = "Ralph Johnson";
-            Category = "Computers";
-            Price = new BigDecimal(44.99);
-        }};
         Optional<Book> deletedBook =  Optional.empty();
         Mockito.when(bookRepository.findById(bookId)).thenReturn(deletedBook);
 
