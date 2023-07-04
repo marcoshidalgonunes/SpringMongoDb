@@ -108,7 +108,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void whenUpdateValidIsCalled_thenResponseShouldBeOk() {
+    public void whenUpdateValidIsCalled_thenResponseShouldBeNoContent() {
         String bookId = "645d1d9fb116312707362206";
         Book book = new Book() {{
             id = bookId;
@@ -119,10 +119,10 @@ public class BookControllerTest {
         }};
         Mockito.when(bookService.update(book)).thenReturn(true);
 
-        ResponseEntity<Boolean> response = bookController.update(book);
+        ResponseEntity<Void> response = bookController.update(book);
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(response.getBody(), true);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertNull(response.getBody());
     }
 
     @Test
@@ -136,21 +136,21 @@ public class BookControllerTest {
         }};
         Mockito.when(bookService.update(book)).thenReturn(false);
 
-        ResponseEntity<Boolean> response = bookController.update(book);
+        ResponseEntity<Void> response = bookController.update(book);
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         Assertions.assertNull(response.getBody());
     }
 
     @Test
-    public void whenDeleteValidIsCalled_thenResponseShouldBeOk() {
+    public void whenDeleteValidIsCalled_thenResponseShouldBeNoContent() {
         String bookId = "645d1d9fb116312707362206";
         Mockito.when(bookService.delete(bookId)).thenReturn(true);
 
-        ResponseEntity<Boolean> response = bookController.delete(bookId);
+        ResponseEntity<Void> response = bookController.delete(bookId);
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(response.getBody(), true);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertNull(response.getBody());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class BookControllerTest {
         String bookId = "645d1d9fb116312707362207";
         Mockito.when(bookService.delete(bookId)).thenReturn(false);
 
-        ResponseEntity<Boolean> response = bookController.delete(bookId);
+        ResponseEntity<Void> response = bookController.delete(bookId);
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         Assertions.assertNull(response.getBody());

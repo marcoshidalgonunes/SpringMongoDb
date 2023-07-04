@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.springmongodb.models.Book;
@@ -60,22 +61,24 @@ public class BookController {
     }
 
     @PutMapping("/Books")
-    public ResponseEntity<Boolean> update(@RequestBody Book book) {
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> update(@RequestBody Book book) {
         Boolean ok = bookService.update(book);
         if (!ok) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.ok().body(ok);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/Books/{id}")
-    public ResponseEntity<Boolean> delete(@PathVariable @NotBlank @Size(max = 24) String id) {
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> delete(@PathVariable @NotBlank @Size(max = 24) String id) {
         Boolean ok = bookService.delete(id);
         if (!ok) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.ok().body(ok);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
