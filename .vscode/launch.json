@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SpringmongodbApplication<springmongodb>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.springmongodb.SpringmongodbApplication",
+            "projectName": "springmongodb",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
