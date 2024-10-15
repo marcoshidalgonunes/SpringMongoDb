@@ -3,6 +3,8 @@ spring:
     mongodb:
       uri: 'mongodb://mongo:27017/BookstoreDb'
       database: BookstoreDb
+  jmx:
+    enabled: true
   security:
     oauth2:
       resourceserver:
