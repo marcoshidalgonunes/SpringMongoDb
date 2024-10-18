@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs: 
+  # Pega metricas exportadas do otel
+  - job_name: 'prometheus-otel-collector' 
+    static_configs:
+      - targets: ['otel-collector:8989']
+
+  # Pega metricas internas do otel
+  - job_name: 'prometheus-spring-metrics' 
+    static_configs:
+      - targets: ['springmongodb:9464']

@@ -8,8 +8,13 @@ RUN ./mvnw clean install
  
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /opt/app
+# Add Open Telemetry agent
+ADD bin/opentelemetry-javaagent.jar /opt/app/opentelemetry-javaagent.jar
+#ADD opentelemetry-agent.yaml /opt/app/opentelemetry-agent.yaml
 # JMX
 EXPOSE 9010
+# Prometheus
+EXPOSE 9464
 # JVM debugging port
 EXPOSE 8081
 COPY --from=builder /opt/app/target/*.jar /opt/app/*.jar
@@ -24,5 +29,8 @@ ENV JAVA_TOOL_OPTIONS="\
   -Dcom.sun.management.jmxremote.rmi.port=9010 \
   -Dcom.sun.management.jmxremote.host=0.0.0.0 \
   -Djava.rmi.server.hostname=0.0.0.0 \
+  -Dotel.exporter.prometheus.port=9464 \
+  -Dotel.metrics.exporter=prometheus \
+  -Dotel.service.name=booksapi \
   -Dspring.profiles.active=docker"
-ENTRYPOINT ["java", "-jar", "/opt/app/*.jar" ]
+ENTRYPOINT ["java", "-javaagent:/opt/app/opentelemetry-javaagent.jar", "-jar", "/opt/app/*.jar" ]
