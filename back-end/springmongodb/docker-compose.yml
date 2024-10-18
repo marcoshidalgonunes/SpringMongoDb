@@ -55,7 +55,10 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    expose:
+      - 4318
     ports:
+      - 4318:4318
       - 8989:8989 # Prometheus metrics exposed by the Collector
     networks:
       - lan-network   

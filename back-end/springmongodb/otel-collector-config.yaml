@@ -1,14 +1,17 @@
 receivers:
-  prometheus:
-    config:
-      scrape_configs:
-        - job_name: prometheus-spring-metrics
-          static_configs:
-            - targets: ['springmongodb:9464']
+  otlp:
+    protocols:
+      http:
+        endpoint: otel-collector:4318
+        cors:
+          allowed_origins:
+            - http://*
 
 exporters:
+  otlp:
+    endpoint: otel-collector:4318
   prometheus: # Expondo métricas no formato prometheus
-    endpoint: "0.0.0.0:8989"
+    endpoint: otel-collector:8989
 
 service:
   telemetry:
@@ -16,5 +19,8 @@ service:
       level: "debug"
   pipelines:
     metrics:
-      receivers: [prometheus]
+      receivers: [otlp]
       exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      exporters: [otlp]

@@ -6,8 +6,3 @@ scrape_configs:
   - job_name: 'prometheus-otel-collector' 
     static_configs:
       - targets: ['otel-collector:8989']
-
-  # Pega metricas internas do otel
-  - job_name: 'prometheus-spring-metrics' 
-    static_configs:
-      - targets: ['springmongodb:9464']
