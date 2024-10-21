@@ -20,7 +20,6 @@ services:
     ports:
       - 8081:8081
       - 9010:9010 # JMX Port
-      - 9464:9464 # Prometheus
 
   mongo:
     container_name: bookstoredb
