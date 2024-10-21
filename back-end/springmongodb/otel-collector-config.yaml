@@ -7,11 +7,17 @@ receivers:
           allowed_origins:
             - http://*
 
+processors: 
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 2000
+  batch:
+
 exporters:
   otlp:
     endpoint: otel-collector:4318
-  prometheus: # Expondo métricas no formato prometheus
-    endpoint: otel-collector:8989
+  elasticsearch: 
+    endpoint: http://elasticsearch:9200
 
 service:
   telemetry:
@@ -20,7 +26,13 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [prometheus]
+      processors: [memory_limiter, batch]
+      exporters: [elasticsearch]
     logs:
       receivers: [otlp]
-      exporters: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [elasticsearch]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [elasticsearch]      

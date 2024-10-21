@@ -59,20 +59,89 @@ services:
       - 4318
     ports:
       - 4318:4318
-      - 8989:8989 # Prometheus metrics exposed by the Collector
     networks:
       - lan-network   
 
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:v2.53.2
-    restart: always
-    volumes:
-      - ./prometheus-config.yaml:/etc/prometheus/prometheus.yml
+  elasticsearch:
+    container_name: elasticsearch
+    image: ${DOCKER_REGISTRY-}docker.elastic.co/elasticsearch/elasticsearch:7.15.1
     ports:
-      - 9090:9090
+      - 9200:9200
     networks:
-      - lan-network   
+      - lan-network
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - http.port=9200
+      - http.cors.enabled=true
+      - http.cors.allow-origin=http://grafana:3000,http://127.0.0.1:3000
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - http.cors.allow-credentials=true
+      - bootstrap.memory_lock=true      
+      - xpack.monitoring.enabled=true
+      - xpack.watcher.enabled=false
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+
+  grafana:
+    container_name: grafana
+    image: ${DOCKER_REGISTRY-}grafana/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - lan-network
+    volumes:
+      - grafanadata:/var/lib/grafana
+    healthcheck:
+      test: 'wget -q -Y off -O /dev/null http://localhost:3000/login > /dev/null 2>&1'
+      interval: 25s
+      timeout: 3s
+      start_period: 120s
+
+  kibana:
+    container_name: kibana
+    image: ${DOCKER_REGISTRY-}docker.elastic.co/kibana/kibana:7.15.1
+    ports:
+      - 5601:5601
+    networks:
+      - lan-network
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      interval: 10s
+      retries: 20
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:5601/api/status
+
+  elastic-apm:
+    container_name: elasticapm
+    image: ${DOCKER_REGISTRY-}docker.elastic.co/apm/apm-server:7.15.1
+    depends_on:
+      - elasticsearch
+      - kibana
+    cap_add: ["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"]
+    cap_drop: ["ALL"]
+    ports:
+      - 8200:8200
+    networks:
+      - lan-network
+    command: >
+      apm-server -e
+        -E apm-server.rum.enabled=true
+        -E setup.kibana.host=kibana:5601
+        -E setup.template.settings.index.number_of_replicas=0
+        -E apm-server.kibana.enabled=true
+        -E apm-server.kibana.host=kibana:5601
+        -E output.elasticsearch.hosts=["elasticsearch:9200"]
+    healthcheck:
+      interval: 10s
+      retries: 12
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
 
 volumes:
   mongodata:
@@ -81,6 +150,12 @@ volumes:
   keycloakdata:
     external: true
     name: keycloakdata
+  elasticdata:
+    external: true
+    name: elasticdata
+  grafanadata:
+    external: true
+    name: grafanadata
 
 networks:
   lan-network:
