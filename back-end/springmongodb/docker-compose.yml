@@ -11,10 +11,10 @@ services:
     depends_on:
       - mongo
       - keycloak
-      - otel-collector
     links:
       - mongo
       - keycloak
+      - elasticsearch
     networks:
       - lan-network
     ports:
@@ -31,6 +31,12 @@ services:
       - lan-network        
     ports:
       - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   keycloak:
       image: quay.io/keycloak/keycloak:latest
@@ -48,19 +54,6 @@ services:
       volumes:
         - keycloakdata:/opt/keycloak/data/h2
 
-  otel-collector:
-    container_name: otel-collector
-    image: otel/opentelemetry-collector-contrib:0.110.0
-    command: ["--config=/etc/otelcol-contrib/config.yaml"]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
-    expose:
-      - 4318
-    ports:
-      - 4318:4318
-    networks:
-      - lan-network   
-
   elasticsearch:
     container_name: elasticsearch
     image: ${DOCKER_REGISTRY-}docker.elastic.co/elasticsearch/elasticsearch:7.15.1
@@ -74,7 +67,7 @@ services:
       - discovery.type=single-node
       - http.port=9200
       - http.cors.enabled=true
-      - http.cors.allow-origin=http://grafana:3000,http://127.0.0.1:3000
+      - http.cors.allow-origin=http://grafana:3000,http://127.0.0.1:3000,http://api:8081
       - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
       - http.cors.allow-credentials=true
       - bootstrap.memory_lock=true      
