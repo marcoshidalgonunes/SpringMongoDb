@@ -32,8 +32,7 @@ ENV JAVA_TOOL_OPTIONS="\
   -Dotel.jmx.interval.milliseconds=5000 \
   -Dotel.jmx.remote.registry.ssl=false \
   -Dotel.metrics.exporter=otlp \  
-  -Dotel.exporter.otlp.endpoint=http://elasticsearch:9200 \  
-  -Dotel.exporter.otlp.headers='Content-Type: application/json' \
+  -Dotel.exporter.otlp.endpoint=http://otel-collector:4318 \
   -Dotel.service.name=booksapi \
   -Dspring.profiles.active=docker"
 ENTRYPOINT ["java", "-javaagent:/opt/app/opentelemetry-javaagent.jar", "-jar", "/opt/app/*.jar" ]

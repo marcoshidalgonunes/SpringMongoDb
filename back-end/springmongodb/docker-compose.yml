@@ -7,12 +7,13 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - mongo
-      - keycloak
+      mongo:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     links:
       - mongo
       - keycloak
-      - elasticsearch
     networks:
       - lan-network
     ports:
@@ -30,7 +31,7 @@ services:
     ports:
       - 27017:27017
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/test --quiet
       interval: 10s
       timeout: 10s
       retries: 5
@@ -58,36 +59,48 @@ services:
             'exec 3<>/dev/tcp/localhost/8080; echo -e "GET /health/ready HTTP/1.1\nhost: localhost:8080\n" >&3; timeout --preserve-status 1 cat <&3 | grep -m 1 status | grep -m 1 UP; ERROR=$?; exec 3<&-; exec 3>&-; exit $ERROR'
           ]
 
-  elasticsearch:
-    container_name: elasticsearch
-    image: ${DOCKER_REGISTRY-}docker.elastic.co/elasticsearch/elasticsearch:7.15.1
-    ports:
-      - 9200:9200
-    networks:
-      - lan-network
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
     volumes:
-      - elasticdata:/usr/share/elasticsearch/data
-    environment:
-      - discovery.type=single-node
-      - http.port=9200
-      - http.cors.enabled=true
-      - http.cors.allow-origin=http://grafana:3000,http://127.0.0.1:3000,http://api:8081
-      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
-      - http.cors.allow-credentials=true
-      - bootstrap.memory_lock=true      
-      - xpack.monitoring.enabled=true
-      - xpack.watcher.enabled=false
-      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      - ./config/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    expose:
+      - 4318
+    ports:
+      - 4318:4318
+      - 8989:8989 # Prometheus metrics exposed by the Collector
+    networks:
+      - lan-network   
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    volumes:
+      - ./config/prometheus-config.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    depends_on:
+      otel-collector:
+        condition: service_started
+    networks:
+      - lan-network  
     healthcheck:
-      interval: 20s
+      test: ["CMD", "wget", "http://localhost:9090"]
+      interval: 10s
+      timeout: 15s
       retries: 10
-      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+      start_period: 40s 
 
   grafana:
     container_name: grafana
     image: ${DOCKER_REGISTRY-}grafana/grafana
     ports:
       - 3000:3000
+    depends_on:
+      prometheus:
+        condition: service_healthy
     networks:
       - lan-network
     volumes:
@@ -97,47 +110,6 @@ services:
       interval: 25s
       timeout: 3s
       start_period: 120s
-
-  kibana:
-    container_name: kibana
-    image: ${DOCKER_REGISTRY-}docker.elastic.co/kibana/kibana:7.15.1
-    ports:
-      - 5601:5601
-    networks:
-      - lan-network
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    healthcheck:
-      interval: 10s
-      retries: 20
-      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:5601/api/status
-
-  elastic-apm:
-    container_name: elasticapm
-    image: ${DOCKER_REGISTRY-}docker.elastic.co/apm/apm-server:7.15.1
-    depends_on:
-      - elasticsearch
-      - kibana
-    cap_add: ["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"]
-    cap_drop: ["ALL"]
-    ports:
-      - 8200:8200
-    networks:
-      - lan-network
-    command: >
-      apm-server -e
-        -E apm-server.rum.enabled=true
-        -E setup.kibana.host=kibana:5601
-        -E setup.template.settings.index.number_of_replicas=0
-        -E apm-server.kibana.enabled=true
-        -E apm-server.kibana.host=kibana:5601
-        -E output.elasticsearch.hosts=["elasticsearch:9200"]
-    healthcheck:
-      interval: 10s
-      retries: 12
-      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
 
 volumes:
   mongodata:

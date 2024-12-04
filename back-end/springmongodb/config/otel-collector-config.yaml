@@ -1,0 +1,26 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: otel-collector:4318
+        cors:
+          allowed_origins:
+            - http://*
+
+exporters:
+  otlp:
+    endpoint: otel-collector:4318
+  prometheus: 
+    endpoint: otel-collector:8989
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      exporters: [otlp]
