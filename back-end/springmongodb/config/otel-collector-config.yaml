@@ -1,17 +1,19 @@
 receivers:
   otlp:
     protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
       http:
-        endpoint: otel-collector:4318
+        endpoint: 0.0.0.0:4318
         cors:
           allowed_origins:
             - http://*
 
 exporters:
   otlp:
-    endpoint: otel-collector:4318
+    endpoint: 0.0.0.0:4318
   prometheus: 
-    endpoint: otel-collector:8989
+    endpoint: 0.0.0.0:8989
 
 service:
   telemetry:
