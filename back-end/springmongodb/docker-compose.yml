@@ -118,9 +118,6 @@ volumes:
   keycloakdata:
     external: true
     name: keycloakdata
-  elasticdata:
-    external: true
-    name: elasticdata
   grafanadata:
     external: true
     name: grafanadata
