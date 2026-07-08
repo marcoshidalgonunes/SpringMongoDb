@@ -3,7 +3,6 @@ package com.springmongodb.services;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,11 +15,14 @@ import com.springmongodb.repositories.BookRepository;
 @Service
 @Transactional
 public class BookServiceImpl implements BookService {
-	@Autowired
-	private BookRepository bookRepository;	
+	private final BookRepository bookRepository;	
 
-	@Autowired
-	private MongoTemplate mongoTemplate;	
+	private final MongoTemplate mongoTemplate;
+
+    BookServiceImpl(BookRepository bookRepository, MongoTemplate mongoTemplate) {
+        this.bookRepository = bookRepository;
+        this.mongoTemplate = mongoTemplate;
+    }	
 
     @Override
     public Book create(Book book) {
